@@ -45,6 +45,9 @@ int main() {
 
     ContactSheetWriter writer(20.0, 100.0, 4);
 
+    writer.setTitle("2D Heat Diffusion - Aluminum");
+    writer.setMaterialInfo(aluminum, dt, dx);
+
     simulation.run(1000, writer, 100);
 
     writer.save("contact_sheet.ppm");
