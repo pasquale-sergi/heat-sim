@@ -35,14 +35,24 @@ HeatSimulation::HeatSimulation(
     }
 }
 
+void HeatSimulation::addBoundaryCondition(std::unique_ptr<BoundaryCondition> boundaryCondition) {
+    if (!boundaryCondition) {
+        throw std::invalid_argument("BoundaryCondition cannot be null.");
+    }
+    boundaryConditions_.push_back(std::move(boundaryCondition));
+}
+
 void HeatSimulation::run(int steps) {
     if (steps < 0) {
         throw std::invalid_argument("Number of steps cannot be negative.");
     }
 
+	applyBoundaryConditions();
+
     for (int step = 0; step < steps; ++step) {
         stepper_->step(current_, next_, alpha_, dt_, dx_);
-        current_ = next_;
+		std::swap(current_, next_);
+		applyBoundaryConditions();
     }
 }
 
@@ -57,4 +67,10 @@ void HeatSimulation::print() const {
 
 const Grid2D& HeatSimulation::currentGrid() const {
     return current_;
+}
+
+void HeatSimulation::applyBoundaryConditions() {
+    for (const auto& bc : boundaryConditions_) {
+        bc->apply(current_);
+    }
 }
