@@ -6,6 +6,7 @@
 #include <vector>
 #include <memory>
 #include "BoundaryCondition.hpp"
+#include "ResultWriter.hpp"
 
 class HeatSimulation {
 public:
@@ -19,13 +20,15 @@ public:
 
 	void addBoundaryCondition(std::unique_ptr<BoundaryCondition> boundaryCondition);
 
-    void run(int steps);
+	void run(int steps);
+    void run(int steps, ResultWriter& writer, int outputEvery);
     void print() const;
 
     const Grid2D& currentGrid() const;
 
 private:
 	void applyBoundaryConditions();
+    void stepOnce();
 
     Grid2D current_;
     Grid2D next_;

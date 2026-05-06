@@ -13,7 +13,8 @@ add_executable(heat_sim
     src/HeatSimulation.cpp
     src/PpmImageWriter.cpp
     src/FixedTopBoundary.cpp
- "src/HeatSimulation.cpp" "src/PpmImageWriter.cpp" "src/FixedTopBoundary.cpp")
+    src/VerticalHearSource.cpp
+ "src/HeatSimulation.cpp" "src/PpmImageWriter.cpp" "src/FixedTopBoundary.cpp" "src/VerticalHearSource.cpp" "src/ContactSheetWriter.cpp")
 
 target_include_directories(heat_sim PRIVATE include)
 target_include_directories(heat_sim PRIVATE heat-sim/include)

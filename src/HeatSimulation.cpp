@@ -50,9 +50,27 @@ void HeatSimulation::run(int steps) {
 	applyBoundaryConditions();
 
     for (int step = 0; step < steps; ++step) {
-        stepper_->step(current_, next_, alpha_, dt_, dx_);
-		std::swap(current_, next_);
-		applyBoundaryConditions();
+        stepOnce();
+    }
+}
+
+void HeatSimulation::run(int steps, ResultWriter& writer, int outputEvery) {
+    if (steps < 0) {
+        throw std::invalid_argument("Number of steps cannot be negative.");
+    }
+    if (outputEvery <= 0) {
+        throw std::invalid_argument("outputEvery must be positive.");
+    }
+
+    applyBoundaryConditions();
+    writer.write(current_, 0);
+
+    for (int step = 1; step <= steps; ++step) {
+        stepOnce();
+
+        if (step % outputEvery == 0) {
+            writer.write(current_, step);
+        }
     }
 }
 
@@ -73,4 +91,10 @@ void HeatSimulation::applyBoundaryConditions() {
     for (const auto& bc : boundaryConditions_) {
         bc->apply(current_);
     }
+}
+
+void HeatSimulation::stepOnce() {
+    stepper_->step(current_, next_, alpha_, dt_, dx_);
+    std::swap(current_, next_);
+    applyBoundaryConditions();
 }
