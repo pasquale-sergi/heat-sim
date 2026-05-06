@@ -1,0 +1,23 @@
+# Visual Studio
+.vs/
+
+# CMake build output
+out/
+build/
+cmake-build-*/
+
+# Compiled binaries
+*.exe
+*.dll
+*.lib
+*.obj
+*.pdb
+*.ilk
+
+# Generated images/output
+*.ppm
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
