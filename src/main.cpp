@@ -11,53 +11,75 @@
 
 #include "ContactSheetWriter.hpp"
 #include "Material.hpp"
+#include "MaterialLibrary.hpp"
 
-int main() {
-    const int width = 200;
-    const int height = 200;
+int main(int argc, char* argv[]) {
 
-    Grid2D initialGrid(width, height, 20.0);
+    try {
+        
+        std::string materialName = "Aluminum";
 
-    auto stepper = std::make_unique<ExplicitEulerStepper>();
+        if (argc >= 2) {
+            materialName = argv[1];
+			std::cout << "Using material from command line: " << materialName << "\n";
+		}
+        std::cout << "Using material default: " << materialName << "\n";
+        
+        Material material = MaterialLibrary::findByName(materialName);
 
-	Material aluminum("Aluminum", 237.0, 2700.0, 900.0);
+        const int width = 200;
+        const int height = 200;
 
-	const double alpha = aluminum.thermalDiffusivity();
-	const double dt = 0.1;
-	const double dx = 0.01;
+        const double alpha = material.thermalDiffusivity();
+        const double dt = 0.1;
+        const double dx = 0.01;
+		const double r = alpha * dt / (dx * dx);
 
-    HeatSimulation simulation(
-        std::move(initialGrid),
-        std::move(stepper),
-		alpha,
-		dt,
-		dx
-    );
+        std::cout << "Material: " << material.name() << "\n";
+        std::cout << "Thermal diffusivity: " << alpha << " m^2/s\n";
+        std::cout << "r: " << r << "\n";
 
-    simulation.addBoundaryCondition(
-        std::make_unique<FixedTopBoundary>(100.0)
-    );
+        Grid2D initialGrid(width, height, 20.0);
 
-    simulation.addBoundaryCondition(
-        std::make_unique<VerticalHeatSource>(width / 2, 100.0)
-    );
+        auto stepper = std::make_unique<ExplicitEulerStepper>();
+
+        HeatSimulation simulation(
+            std::move(initialGrid),
+            std::move(stepper),
+            alpha,
+            dt,
+            dx
+        );
+
+        simulation.addBoundaryCondition(
+            std::make_unique<FixedTopBoundary>(100.0)
+        );
+
+        simulation.addBoundaryCondition(
+            std::make_unique<VerticalHeatSource>(width / 2, 100.0)
+        );
 
 
-    ContactSheetWriter writer(20.0, 100.0, 4);
+        ContactSheetWriter writer(20.0, 100.0, 4);
 
-    writer.setTitle("2D Heat Diffusion - Aluminum");
-    writer.setMaterialInfo(aluminum, dt, dx);
+        writer.setTitle("2D Heat Diffusion - " + material.name());
+        writer.setMaterialInfo(material, dt, dx);
 
-    simulation.run(1000, writer, 100);
+        simulation.run(1000, writer, 100);
 
-    writer.save("contact_sheet.ppm");
+        writer.save("contact_sheet.ppm");
 
-    std::cout << "Material: " << aluminum.name() << "\n";
-    std::cout << "Thermal diffusivity: " << alpha << " m^2/s\n";
+        std::cout << "Contact sheet written to contact_sheet.ppm\n";
 
-    std::cout << "Contact sheet written to contact_sheet.ppm\n";
-
-    std::cout << "Frames written every 100 steps.\n";
-
-    return 0;
+        return 0;
+    }catch(const std::exception& ex) {
+        std::cerr << "Error: " << ex.what() << "\n";
+		
+        std::cerr << "Available materials:\n";
+		for (const auto& mat : MaterialLibrary::all()) {
+            std::cerr << " - " << mat.name() << "\n";
+        }
+        
+        return 1;
+    }
 }
