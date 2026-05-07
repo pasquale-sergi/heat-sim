@@ -1,77 +1,96 @@
 # 2D Heat Diffusion Simulation
 
-A small C++ project that simulates heat diffusion on a 2D plate.
+A small scientific-computing project that simulates heat diffusion on a 2D plate and exports the result as PPM images.
 
-The project was built to practice modern C++ concepts, basic scientific computing, numerical methods, and clean software architecture.
+The project was built to practice modern C++, numerical methods, clean software architecture, and simple scientific visualization.
 
-## What it does
+## Overview
 
-The simulation models a rectangular plate where heat spreads over time.
+The simulation represents a rectangular plate as a 2D grid of temperature values. At each time step, every internal cell is updated according to the temperature of its four direct neighbors: up, down, left, and right.
+
+The program can:
+
+- simulate heat diffusion for different materials;
+- generate an annotated PPM contact sheet for a single material;
+- compare two materials side by side;
+- visualize how material properties affect heat spreading over time.
 
 ## Physical model
 
 The simulation is based on the 2D heat equation:
 
-    dT/dt = alpha * (d2T/dx2 + d2T/dy2)
+```text
+∂T/∂t = α(∂²T/∂x² + ∂²T/∂y²)
+```
 
 Where:
 
-- T is temperature
-- alpha is thermal diffusivity
-- dt is the time step
-- dx is the spatial step
+- `T` is temperature;
+- `α` is thermal diffusivity;
+- `t` is time;
+- `x` and `y` are spatial coordinates.
 
-For a material, thermal diffusivity is computed as:
+For each material, thermal diffusivity is computed as:
 
-    alpha = k / (rho * cp)
+```text
+α = k / (ρ cp)
+```
 
 Where:
 
-- k = thermal conductivity
-- rho = density
-- cp = specific heat capacity
+- `k` is thermal conductivity, in W/(m·K);
+- `ρ` is density, in kg/m³;
+- `cp` is specific heat capacity, in J/(kg·K).
+
+Higher thermal diffusivity means heat spreads faster through the material.
 
 ## Numerical method
 
-The project uses a simple explicit finite-difference update:
+The project uses an explicit finite-difference method with an Explicit Euler time stepper.
 
-    T_next = T + r * (up + down + left + right - 4*T)
+For every internal grid cell, the update formula is:
+
+```text
+T_next = T_current + r(up + down + left + right - 4T_current)
+```
 
 with:
 
-    r = alpha * dt / dx^2
+```text
+r = α dt / dx²
+```
 
-For stability, the explicit 2D method requires approximately:
+Where:
 
-    r <= 0.25
+- `dt` is the time step;
+- `dx` is the spatial step;
+- `up`, `down`, `left`, and `right` are the neighboring cell temperatures.
 
-## Architecture
+## Supported materials
 
-Main components:
+The project currently supports:
 
-- Grid2D: stores the 2D temperature field using a contiguous std::vector<double>.
-- Material: stores material properties and computes thermal diffusivity.
-- TimeStepper: abstract interface for numerical time-stepping algorithms.
-- ExplicitEulerStepper: concrete finite-difference implementation of the heat update.
-- BoundaryCondition: abstract interface for boundaries and heat sources.
-- FixedTopBoundary: keeps the top row at a fixed temperature.
-- VerticalHeatSource: keeps a vertical column at a fixed temperature.
-- HeatSimulation: orchestrates the simulation loop, applies boundaries, runs the stepper, and writes output.
-- ResultWriter: abstract interface for output generation.
-- ContactSheetWriter: collects simulation frames and generates an annotated PPM contact sheet.
+- Aluminum
+- Copper
+- Steel
+- Ceramic
 
-## Output
+Each material stores:
 
-The simulation writes a PPM contact sheet:
+- thermal conductivity;
+- density;
+- specific heat capacity;
+- computed thermal diffusivity.
 
-    contact_sheet.ppm
+The material system allows the same simulation logic to be reused with different physical parameters.
 
-The image contains:
+## Output files
 
-- simulation title
-- material properties
-- numerical parameters
-- frame captions by step number
-- heatmap frames over time
+The generated PPM images include multiple simulation frames over time. The contact sheet also includes metadata such as the material name, physical parameters, and numerical parameters.
 
-<img width="940" height="890" alt="image" src="https://github.com/user-attachments/assets/2c3831a7-1269-4680-911a-918b99666e85" />
+### Single material
+<img width="890" height="596" alt="Screenshot 2026-05-07 110152" src="https://github.com/user-attachments/assets/b6e5def5-7b52-4489-a0bb-9db652b6a24b" />
+
+### Comparison between two materials
+<img width="744" height="1005" alt="Screenshot 2026-05-07 110332" src="https://github.com/user-attachments/assets/a66851a2-27f9-4dce-b15e-c5ba53d85203" />
+
